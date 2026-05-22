@@ -81,7 +81,7 @@ npm install react-router-dom@6.10.0
 
 # Core Components
 
-In v6.10.0 you'll use these constantly:
+In v6.10.0 we'll use these constantly:
 
 ```jsx
 BrowserRouter
