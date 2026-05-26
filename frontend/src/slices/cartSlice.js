@@ -12,7 +12,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action) => {
-       console.log("Payload:", action.payload);
+      console.log("Payload:", action.payload);
       const item = action.payload;
       const existsItem = state.cartItems.find((i) => i._id === item._id);
       if (existsItem) {
@@ -25,8 +25,12 @@ const cartSlice = createSlice({
 
       return updateCart(state);
     },
+    removeFromCart: (state, action) => {
+      state.cartItems = state.cartItems.filter((i) => i._id !== action.payload);
+      return updateCart(state); // localStorage
+    },
   },
 });
 
-export const { addToCart } = cartSlice.actions;
+export const { addToCart, removeFromCart } = cartSlice.actions;
 export default cartSlice.reducer;
