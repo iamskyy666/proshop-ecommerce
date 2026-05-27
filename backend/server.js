@@ -8,19 +8,27 @@ import userRouter from "./routes/userRoutes.js";
 
 const PORT = process.env.PORT || 5000;
 connectDB(); // connect DB
+
 const app = express();
 
+// 🟢 middlewares
+// Built-in body parser.
+app.use(express.json());
+// Built-in  urlencoded payloads parser (based on body-parser)
+app.use(express.urlencoded({ extended: true }));
+
+// 🟢  routes
 app.get("/", (_, res) => {
   res.send("Api is running.. ✅");
 });
 
-// routes
 app.use("/api/products", productRouter);
 app.use("/api/users", userRouter);
 
-// middlewares
+// 🟢 error-handlers
 app.use(notFound);
 app.use(errorHandler);
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server is running on PORT:${PORT}`);
