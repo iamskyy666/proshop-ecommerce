@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import productRouter from "./routes/productRoutes.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
@@ -11,24 +12,25 @@ connectDB(); // connect DB
 
 const app = express();
 
-// 🟢 middlewares
+//! 🟢 middlewares
 // Built-in body parser.
 app.use(express.json());
 // Built-in  urlencoded payloads parser (based on body-parser)
 app.use(express.urlencoded({ extended: true }));
+// To access req.cookies
+app.use(cookieParser());
 
-// 🟢  routes
+//! 🟢  routes
 app.get("/", (_, res) => {
-  res.send("Api is running.. ✅");
+  res.send("API is running.. ✅");
 });
 
 app.use("/api/products", productRouter);
 app.use("/api/users", userRouter);
 
-// 🟢 error-handlers
+//! 🟢 error-handlers
 app.use(notFound);
 app.use(errorHandler);
-
 
 app.listen(PORT, () => {
   console.log(`✅ Server is running on PORT:${PORT}`);

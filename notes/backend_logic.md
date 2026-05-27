@@ -847,3 +847,743 @@ errorHandler
 ```
 
 ---
+
+# What Problem Does JWT Solve? 🔏
+
+Imagine our login endpoint:
+
+```http
+POST /api/users/login
+```
+
+User sends:
+
+```json
+{
+  "email": "admin@email.com",
+  "password": "123456"
+}
+```
+
+We verify:
+
+```js
+const user = await User.findOne({ email });
+
+if (user && await user.matchPassword(password)) {
+  // success
+}
+```
+
+The question becomes:
+
+> How does our server know who the user is on the next request?
+
+Suppose the user logs in and then requests:
+
+```http
+GET /api/users/profile
+```
+
+How does the server know:
+
+```text
+This is Admin User
+```
+
+and not:
+
+```text
+This is John Doe
+```
+
+JWT solves this problem.
+
+---
+
+# What Is JWT?
+
+JWT stands for:
+
+```text
+JSON Web Token
+```
+
+It is a signed string that contains information about a user.
+
+Example:
+
+```text
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Looks like gibberish.
+
+The server creates it.
+
+The client stores it.
+
+The client sends it back on future requests.
+
+The server verifies it.
+
+---
+
+# Traditional Session Authentication
+
+Before JWT became popular:
+
+```text
+User Login
+     │
+     ▼
+Server creates Session
+     │
+     ▼
+Stores Session in Database
+     │
+     ▼
+Browser gets Session ID Cookie
+```
+
+Database:
+
+```text
+sessions
+├── abc123 -> user1
+├── xyz999 -> user2
+```
+
+Every request:
+
+```text
+Cookie: session=abc123
+```
+
+Server looks up:
+
+```text
+abc123
+```
+
+in database.
+
+---
+
+JWT removes this lookup.
+
+---
+
+# JWT Authentication
+
+Instead of storing sessions:
+
+```text
+User Login
+     │
+     ▼
+Server creates JWT
+     │
+     ▼
+Browser stores JWT
+     │
+     ▼
+Browser sends JWT on requests
+     │
+     ▼
+Server verifies signature
+```
+
+No session table required.
+
+This is called:
+
+```text
+Stateless Authentication
+```
+
+because the server doesn't need to remember logged-in users.
+
+---
+
+# Anatomy of a JWT
+
+JWT has 3 parts:
+
+```text
+HEADER.PAYLOAD.SIGNATURE
+```
+
+Example:
+
+```text
+xxxxx.yyyyy.zzzzz
+```
+
+---
+
+## Part 1: Header
+
+Example:
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+Meaning:
+
+```text
+Algorithm = HS256
+Type = JWT
+```
+
+---
+
+## Part 2: Payload
+
+Contains data.
+
+Example:
+
+```json
+{
+  "id": "64a12345",
+  "email": "admin@email.com"
+}
+```
+
+This is called the:
+
+```text
+Claim
+```
+
+or payload.
+
+---
+
+## Part 3: Signature
+
+Created using:
+
+```text
+Header
++
+Payload
++
+Secret Key
+```
+
+Example:
+
+```text
+MY_SUPER_SECRET_KEY
+```
+
+Only the server knows this secret.
+
+This prevents tampering.
+
+---
+
+# Why Signature Matters
+
+Suppose user changes:
+
+```json
+{
+  "isAdmin": false
+}
+```
+
+to
+
+```json
+{
+  "isAdmin": true
+}
+```
+
+The signature immediately becomes invalid.
+
+Server detects tampering.
+
+Request is rejected.
+
+---
+
+# JWT Creation
+
+In Node.js:
+
+```js
+import jwt from "jsonwebtoken";
+
+const token = jwt.sign(
+  {
+    id: user._id,
+  },
+  process.env.JWT_SECRET,
+  {
+    expiresIn: "30d",
+  }
+);
+```
+
+Example result:
+
+```text
+eyJhbGciOiJIUzI1NiIs...
+```
+
+---
+
+# What Are We Putting Inside?
+
+Usually:
+
+```js
+{
+  id: user._id
+}
+```
+
+Not:
+
+```js
+{
+  password: user.password
+}
+```
+
+Never place passwords inside JWTs.
+
+---
+
+# Why Store Only User ID?
+
+Because later:
+
+```js
+const decoded = jwt.verify(token, JWT_SECRET);
+```
+
+returns:
+
+```js
+{
+  id: "64a12345"
+}
+```
+
+Then:
+
+```js
+const user = await User.findById(decoded.id);
+```
+
+Simple.
+
+---
+
+# Login Flow
+
+Step 1
+
+User submits:
+
+```json
+{
+  "email": "admin@email.com",
+  "password": "123456"
+}
+```
+
+---
+
+Step 2
+
+Server verifies credentials.
+
+---
+
+Step 3
+
+Generate token:
+
+```js
+const token = jwt.sign(
+  { id: user._id },
+  process.env.JWT_SECRET,
+  { expiresIn: "30d" }
+);
+```
+
+---
+
+Step 4
+
+Send token.
+
+Example:
+
+```json
+{
+  "_id": "...",
+  "name": "Admin",
+  "token": "eyJhb..."
+}
+```
+
+or set an HTTP-only cookie.
+
+---
+
+# Future Requests
+
+Client sends:
+
+```http
+Authorization: Bearer eyJhb...
+```
+
+or cookie.
+
+---
+
+Server receives:
+
+```http
+GET /api/users/profile
+```
+
+with token.
+
+---
+
+# Verify JWT
+
+Middleware:
+
+```js
+const decoded = jwt.verify(
+  token,
+  process.env.JWT_SECRET
+);
+```
+
+If valid:
+
+```js
+{
+  id: "64a12345"
+}
+```
+
+If invalid:
+
+```text
+JsonWebTokenError
+```
+
+---
+
+# Protect Middleware
+
+Soon we'll write something like:
+
+```js
+const protect = asyncHandler(async (
+  req,
+  res,
+  next
+) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token =
+      req.headers.authorization.split(" ")[1];
+
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    req.user = await User.findById(decoded.id);
+
+    next();
+  } else {
+    res.status(401);
+    throw new Error("Not authorized");
+  }
+});
+```
+
+---
+
+# What Happens Here?
+
+Request:
+
+```http
+GET /api/users/profile
+Authorization: Bearer eyJhb...
+```
+
+↓
+
+Extract token
+
+↓
+
+Verify token
+
+↓
+
+Get user ID
+
+↓
+
+Find user in DB
+
+↓
+
+Attach user:
+
+```js
+req.user
+```
+
+↓
+
+Continue route
+
+---
+
+Now controller can use:
+
+```js
+req.user._id
+```
+
+without querying login credentials again.
+
+---
+
+# Why Not Trust Frontend?
+
+Bad:
+
+```json
+{
+  "userId": "admin123"
+}
+```
+
+Anyone can fake that.
+
+JWT allows verification:
+
+```text
+Did OUR server create this token?
+```
+
+If yes:
+
+```text
+Trust it
+```
+
+If no:
+
+```text
+Reject it
+```
+
+---
+
+# JWT Expiration
+
+Example:
+
+```js
+expiresIn: "30d"
+```
+
+JWT contains expiration:
+
+```json
+{
+  "exp": 1750000000
+}
+```
+
+After expiry:
+
+```js
+jwt.verify(...)
+```
+
+throws:
+
+```text
+TokenExpiredError
+```
+
+User must log in again.
+
+---
+
+# JWT in Local Storage vs Cookies
+
+## Local Storage
+
+```js
+localStorage.setItem("token", token);
+```
+
+Pros:
+
+* Easy
+
+Cons:
+
+* Vulnerable to XSS attacks
+
+---
+
+## HTTP-only Cookie
+
+Modern preferred approach.
+
+Server:
+
+```js
+res.cookie("jwt", token, {
+  httpOnly: true,
+});
+```
+
+Browser stores automatically.
+
+JavaScript cannot read it.
+
+Safer.
+
+This is what newer versions of ProShop use.
+
+---
+
+# JWT Secret
+
+Never:
+
+```env
+JWT_SECRET=123
+```
+
+Use:
+
+```env
+JWT_SECRET=sdf89sdf98sdf8sdf9sdf89sdf98sdf
+```
+
+Long and random.
+
+If attackers know the secret:
+
+```text
+Game Over
+```
+
+They can forge tokens.
+
+---
+
+# Authentication vs Authorization
+
+JWT handles:
+
+```text
+Authentication
+```
+
+Meaning:
+
+```text
+Who are we?
+```
+
+Example:
+
+```text
+Skyy logged in successfully.
+```
+
+---
+
+Then authorization checks permissions:
+
+```js
+if (!req.user.isAdmin) {
+   throw new Error("Not authorized");
+}
+```
+
+Meaning:
+
+```text
+Can we perform this action?
+```
+
+Example:
+
+```text
+Admin -> delete product
+User -> cannot delete product
+```
+
+---
+
+# How We'll we used JWT in ProShop
+
+Our flow:
+
+```text
+Login
+   │
+   ▼
+Verify Email + Password
+   │
+   ▼
+Generate JWT
+   │
+   ▼
+Store JWT in HTTP-only cookie
+   │
+   ▼
+Protected Request
+   │
+   ▼
+Protect Middleware
+   │
+   ▼
+jwt.verify()
+   │
+   ▼
+Find User
+   │
+   ▼
+req.user
+   │
+   ▼
+Controller Executes
+```
+
+That's the complete JWT authentication lifecycle we'll build in the MERN backend. Once we understand this flow, the actual implementation in Express becomes much easier because every piece has a specific responsibility: login creates the token, middleware verifies it, and controllers use the authenticated user attached to `req.user`.
