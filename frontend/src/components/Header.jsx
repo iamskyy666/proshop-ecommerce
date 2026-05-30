@@ -21,10 +21,12 @@ export default function Header() {
     try {
       await logoutApiCall().unwrap();
       dispatch(logout());
+      toast.success("Logged-out!")
       navigate("/login");
     } catch (err) {
       console.log(err);
       toast.error(err?.data?.message || err?.error);
+      return;
     }
   }
 

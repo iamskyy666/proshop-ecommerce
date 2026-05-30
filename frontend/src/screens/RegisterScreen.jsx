@@ -3,19 +3,21 @@ import { Form, Button, Row, Col } from "react-bootstrap";
 import FormContainer from "../components/FormContainer";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useLoginMutation } from "../slices/usersApiSlice";
+import { useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import { toast } from "react-toastify";
 import Loader from "../components/Loader";
 
-function LoginScreen() {
+function RegisterScreen() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [login, { isLoading }] = useLoginMutation();
+  const [register, { isLoading }] = useRegisterMutation();
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -32,20 +34,37 @@ function LoginScreen() {
 
   async function submitHandler(evt) {
     evt.preventDefault();
-    try {
-      const res = await login({ email, password }).unwrap();
-      dispatch(setCredentials({ ...res }));
-      navigate(redirect);
-    } catch (error) {
-      toast.error(error?.data?.message || error?.error);
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords don't match!");
       return;
+    } else {
+      // console.log("submit-handler ✅");
+      try {
+        const res = await register({ name, email, password }).unwrap();
+        dispatch(setCredentials({ ...res }));
+        toast.success("Registered successfully!")
+        navigate(redirect);
+      } catch (error) {
+        toast.error(error?.data?.message || error?.error);
+      }
     }
   }
 
   return (
     <FormContainer>
-      <h1>Sign In</h1>
+      <h1>Sign Up</h1>
       <Form onSubmit={submitHandler}>
+        {/* 👤 NAME */}
+        <Form.Group controlId="name" className="my-3">
+          <Form.Label>Name</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter name"
+            value={name}
+            onChange={(evt) => setName(evt.target.value)}
+          />
+        </Form.Group>
         {/* 📧 EMAIL */}
         <Form.Group controlId="email" className="my-3">
           <Form.Label>Email Address</Form.Label>
@@ -57,7 +76,7 @@ function LoginScreen() {
           />
         </Form.Group>
         {/* 🔑 PASSWORD */}
-        <Form.Group controlId="email" className="my-3">
+        <Form.Group controlId="password" className="my-3">
           <Form.Label>Password</Form.Label>
           <Form.Control
             type="password"
@@ -66,22 +85,32 @@ function LoginScreen() {
             onChange={(evt) => setPassword(evt.target.value)}
           />
         </Form.Group>
+        {/* 🔑🔑 CONFIRM-PASSWORD */}
+        <Form.Group controlId="confirmPassword" className="my-3">
+          <Form.Label>Confirm Password</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Enter password again"
+            value={confirmPassword}
+            onChange={(evt) => setConfirmPassword(evt.target.value)}
+          />
+        </Form.Group>
         {/* 👆🏻 SUBMIT BUTTON */}
         <Button
           type="submit"
           variant="primary"
           className="my-3"
           disabled={isLoading}>
-          Submit
+          Register
         </Button>
         {/* ⏳ PAGE-LOADER */}
         {isLoading && <Loader />}
       </Form>
       <Row className="py-3">
         <Col>
-          👤 New Customer?{" "}
-          <Link to={redirect ? `/register?redirect=${redirect}` : `/register`}>
-            Register
+          👤 Already have an account?{" "}
+          <Link to={redirect ? `/login?redirect=${redirect}` : `/login`}>
+            Login
           </Link>
         </Col>
       </Row>
@@ -89,4 +118,4 @@ function LoginScreen() {
   );
 }
 
-export default LoginScreen;
+export default RegisterScreen;
