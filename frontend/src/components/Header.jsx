@@ -1,4 +1,4 @@
-import { Navbar, Nav, Container, Badge } from "react-bootstrap";
+import { Navbar, Nav, Container, Badge, NavDropdown } from "react-bootstrap";
 import { FaShoppingCart, FaUser } from "react-icons/fa";
 import { LinkContainer } from "react-router-bootstrap";
 import logo from "../assets/logo.png";
@@ -6,7 +6,11 @@ import { useSelector } from "react-redux";
 
 export default function Header() {
   const { cartItems } = useSelector((state) => state.cart);
-  console.log("cartItems:", cartItems);
+  const { userInfo } = useSelector((state) => state.auth);
+
+  function logoutHandler() {
+    console.log(`Logged out ✅`);
+  }
 
   return (
     <header>
@@ -28,22 +32,26 @@ export default function Header() {
                     // Item Count in Header
                     <Badge pill bg="success" style={{ marginLeft: "5px" }}>
                       {cartItems.reduce((acc, i) => acc + i.qty, 0)}
-                      {/* {console.log(
-                        "Badge calculation:",
-                        cartItems.map((i) => ({
-                          name: i.name,
-                          qty: i.qty,
-                        })),
-                      )} */}
                     </Badge>
                   )}
                 </Nav.Link>
               </LinkContainer>
-              <LinkContainer to="/login">
-                <Nav.Link>
-                  <FaUser /> Sign In
-                </Nav.Link>
-              </LinkContainer>
+              {userInfo ? (
+                <NavDropdown title={userInfo.name} id="username">
+                  <LinkContainer to="/profile">
+                    <NavDropdown.Item>Profile</NavDropdown.Item>
+                  </LinkContainer>
+                  <NavDropdown.Item onClick={logoutHandler}>
+                    Logout
+                  </NavDropdown.Item>
+                </NavDropdown>
+              ) : (
+                <LinkContainer to="/login">
+                  <Nav.Link>
+                    <FaUser /> Sign In
+                  </Nav.Link>
+                </LinkContainer>
+              )}
             </Nav>
           </Navbar.Collapse>
         </Container>
