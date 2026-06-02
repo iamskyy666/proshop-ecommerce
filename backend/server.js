@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 import productRouter from "./routes/productRoutes.js";
 import { errorHandler, notFound } from "./middlewares/errorMiddleware.js";
 import userRouter from "./routes/userRoutes.js";
+import orderRouter from "./routes/orderRoutes.js";
 
 const PORT = process.env.PORT || 5000;
 connectDB(); // connect DB
@@ -27,6 +28,7 @@ app.get("/", (_, res) => {
 
 app.use("/api/products", productRouter);
 app.use("/api/users", userRouter);
+app.use("/api/orders", orderRouter);
 
 //! 🟢 error-handlers
 app.use(notFound);
