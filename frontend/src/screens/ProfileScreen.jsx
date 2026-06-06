@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useProfileMutation } from "../slices/usersApiSlice";
-import { Row, Col, Form, Button } from "react-bootstrap";
+import { Row, Col, Form, Button, Table } from "react-bootstrap";
+import {LinkContainer} from "react-router-bootstrap"
 import Loader from "../components/Loader";
+import Message from "../components/Message";
 import { toast } from "react-toastify";
 import { setCredentials } from "../slices/authSlice";
+import { useGetMyOrdersQuery } from "../slices/ordersApiSlice";
+import { FaTimes } from "react-icons/fa";
 
 const ProfileScreen = () => {
   const dispatch = useDispatch();
@@ -16,7 +20,10 @@ const ProfileScreen = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
-  const [update, { isLoading: loadingUpdateProfile }] = useProfileMutation();
+  const [updateProfile, { isLoading: loadingUpdateProfile }] =
+    useProfileMutation();
+
+  const { data: orders, isLoading, error } = useGetMyOrdersQuery();
 
   useEffect(() => {
     if (userInfo) {
@@ -24,8 +31,6 @@ const ProfileScreen = () => {
       setEmail(userInfo.email);
     }
   }, [userInfo.name, userInfo.email, userInfo]);
-
-  const [updateProfile, { isLoading, error }] = useProfileMutation();
 
   const submitHandler = async (evt) => {
     evt.preventDefault();
@@ -50,7 +55,7 @@ const ProfileScreen = () => {
 
   return (
     <Row>
-      {/* COL 1 */}
+      {/* COL 1 - USER_DETAILS*/}
       <Col md={3}>
         <h2>User Profile</h2>
         <Form onSubmit={submitHandler}>
@@ -97,8 +102,60 @@ const ProfileScreen = () => {
         </Form>
       </Col>
 
-      {/* COL 2 */}
-      <Col md={9}>Col 2</Col>
+      {/* COL 2 - USER_ORDERS*/}
+      <Col md={9}>
+        <h2>My Orders</h2>
+        {isLoading ? (
+          <Loader />
+        ) : error ? (
+          <Message variant="danger">
+            {error?.data?.message || error.error}
+          </Message>
+        ) : (
+          <>
+            <Table striped hover responsive className="table-sm">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>DATE</th>
+                  <th>TOTAL</th>
+                  <th>PAID</th>
+                  <th>DELIEVERED</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order) => (
+                  <tr key={order._id}>
+                    <td>{order._id}</td>
+                    <td>{order.createdAt.substring(0, 10)}</td>
+                    <td>${order.totalPrice}</td>
+                    <td>
+                      {order.isPaid ? (
+                        order.paidAt.substring(0, 10)
+                      ) : (
+                        <FaTimes style={{ color: "red" }} />
+                      )}
+                    </td>
+                    <td>
+                      {order.isDeliveted ? (
+                        order.delieverdAt.substring(0, 10)
+                      ) : (
+                        <FaTimes style={{ color: "red" }} />
+                      )}
+                    </td>
+                    <LinkContainer to={`/orders/${order._id}`}>
+                      <Button className="btn-sm" variant="light">
+                        Details
+                      </Button>
+                    </LinkContainer>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </>
+        )}
+      </Col>
     </Row>
   );
 };
