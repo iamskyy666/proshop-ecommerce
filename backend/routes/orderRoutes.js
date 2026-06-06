@@ -18,7 +18,7 @@ orderRouter
 
 orderRouter.route("/mine").get(protectMw, getMyOrders);
 
-orderRouter.route("/:id").get(protectMw, adminMw, getOrderById);
+orderRouter.route("/:id").get(protectMw, getOrderById);
 
 orderRouter.route("/:id/pay").put(protectMw, updateOrderToPaid);
 orderRouter
