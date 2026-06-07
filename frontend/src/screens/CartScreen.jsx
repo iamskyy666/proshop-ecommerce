@@ -98,7 +98,7 @@ function CartScreen() {
                 className="btn-block"
                 disabled={cartItems.length === 0}
                 onClick={checkoutHandler}>
-                Procedd To Checkout
+                Proceed To Checkout
               </Button>
             </ListGroup.Item>
           </ListGroup>
