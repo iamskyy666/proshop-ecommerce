@@ -10,6 +10,8 @@ const protectMw = asyncHandler(async (req, res, next) => {
   // Read the jwt from the cookie
   token = req.cookies.jwt;
 
+  // console.log("Token:", token);
+
   if (token) {
     // decode the token to extract the user._id
     try {
