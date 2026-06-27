@@ -28,6 +28,7 @@ import AdminRoute from "./components/AdminRoute";
 import OrderListScreen from "./screens/admin/OrderListScreen";
 import ProductListScreen from "./screens/admin/ProductListScreen";
 import ProductEditScreen from "./screens/admin/ProductEditScreen";
+import UserListScreen from "./screens/admin/UserListScreen";
 
 // react-router setup (v6)
 const router = createBrowserRouter(
@@ -50,7 +51,11 @@ const router = createBrowserRouter(
       <Route path="" element={<AdminRoute />}>
         <Route path="/admin/order-list" element={<OrderListScreen />} />
         <Route path="/admin/product-list" element={<ProductListScreen />} />
-        <Route path="/admin/products/:id/edit" element={<ProductEditScreen />} />
+        <Route
+          path="/admin/products/:id/edit"
+          element={<ProductEditScreen />}
+        />
+        <Route path="/admin/user-list" element={<UserListScreen />} />
       </Route>
     </Route>,
   ),
