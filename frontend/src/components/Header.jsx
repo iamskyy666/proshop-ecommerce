@@ -38,7 +38,7 @@ export default function Header() {
           <LinkContainer to="/">
             <Navbar.Brand>
               <img src={logo} alt="proshop-logo" />
-              ProShop
+              PrimeShop
             </Navbar.Brand>
           </LinkContainer>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />

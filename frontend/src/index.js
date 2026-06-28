@@ -30,6 +30,7 @@ import ProductListScreen from "./screens/admin/ProductListScreen";
 import ProductEditScreen from "./screens/admin/ProductEditScreen";
 import UserListScreen from "./screens/admin/UserListScreen";
 import UserEditScreen from "./screens/admin/UserEditScreen";
+import { HelmetProvider } from "react-helmet-async";
 
 // react-router setup (v6)
 const router = createBrowserRouter(
@@ -38,7 +39,10 @@ const router = createBrowserRouter(
       <Route index element={<HomeScreen />} />
       <Route path="/search/:keyword" element={<HomeScreen />} />
       <Route path="/page/:pageNumber" element={<HomeScreen />} />
-      <Route path="/search/:keyword/page/:pageNumber" element={<HomeScreen />} />
+      <Route
+        path="/search/:keyword/page/:pageNumber"
+        element={<HomeScreen />}
+      />
       <Route path="/product/:id" element={<ProductScreen />} />
       <Route path="/cart" element={<CartScreen />} />
       <Route path="/login" element={<LoginScreen />} />
@@ -73,17 +77,19 @@ const router = createBrowserRouter(
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <Provider store={store}>
-      {/* <App /> */}
-      <PayPalScriptProvider deferLoading={true}>
-        <RouterProvider
-          future={{
-            v7_startTransition: true,
-          }}
-          router={router}
-        />
-      </PayPalScriptProvider>
-    </Provider>
+    <HelmetProvider>
+      <Provider store={store}>
+        {/* <App /> */}
+        <PayPalScriptProvider deferLoading={true}>
+          <RouterProvider
+            future={{
+              v7_startTransition: true,
+            }}
+            router={router}
+          />
+        </PayPalScriptProvider>
+      </Provider>
+    </HelmetProvider>
   </React.StrictMode>,
 );
 
