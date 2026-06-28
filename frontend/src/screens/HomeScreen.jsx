@@ -6,6 +6,7 @@ import Message from "../components/Message";
 import { useParams } from "react-router-dom";
 import Paginate from "../components/Paginate";
 import { Link } from "react-router-dom";
+import ProductCaraousel from "../components/ProductCaraousel";
 
 function HomeScreen() {
   const { pageNumber, keyword } = useParams();
@@ -16,10 +17,12 @@ function HomeScreen() {
 
   return (
     <>
-      {keyword && (
+      {keyword ? (
         <Link to="/" clasName="btn btn-light mb-4">
           Go Back
         </Link>
+      ) : (
+        <ProductCaraousel />
       )}
       {isLoading ? (
         <Loader />
