@@ -1,5 +1,7 @@
 ![alt text](prime1.png)
 
+![alt text](image.png)
+
 ![alt text](prime1-1.png)
 
 ![alt text](prime2.png) 
